@@ -1,0 +1,15 @@
+{
+  "name": "catch-the-lion-ts",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/bxxmi/catch-the-lion-ts.git",
+  "author": "bxxmi <bmi6638@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "parcel index.html"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.5",
+    "typescript": "^4.5.4"
+  }
+}
