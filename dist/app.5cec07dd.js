@@ -173,26 +173,45 @@ exports.Cell = Cell;
 var Board =
 /** @class */
 function () {
-  function Board() {
+  function Board(upperPlayer, lowerPlayer) {
     // cells는 클래스 Cell 배열타입이므로 빈 배열을 가지게 선언한다.
     this.cells = [];
     this._el = document.createElement("div");
+    this.map = new WeakMap();
     this._el.className = "board";
 
-    for (var row = 0; row < 4; row++) {
+    var _loop_1 = function _loop_1(row) {
       var rowEl = document.createElement("div");
       rowEl.className = "row";
 
-      this._el.appendChild(rowEl);
+      this_1._el.appendChild(rowEl);
 
-      for (var col = 0; col < 3; col++) {
+      var _loop_2 = function _loop_2(col) {
+        var piece = upperPlayer.getPieces().find(function (_a) {
+          var currentPosition = _a.currentPosition;
+          return currentPosition.col === col && currentPosition.row === row;
+        }) || lowerPlayer.getPieces().find(function (_a) {
+          var currentPosition = _a.currentPosition;
+          return currentPosition.col === col && currentPosition.row === row;
+        });
         var cell = new Cell({
           row: row,
           col: col
-        }, null);
-        this.cells.push(cell);
+        }, piece);
+        this_1.map.set(cell._el, cell);
+        this_1.cells.push(cell);
         rowEl.appendChild(cell._el);
+      };
+
+      for (var col = 0; col < 3; col++) {
+        _loop_2(col);
       }
+    };
+
+    var this_1 = this;
+
+    for (var row = 0; row < 4; row++) {
+      _loop_1(row);
     }
   }
 
@@ -243,7 +262,257 @@ function () {
 }();
 
 exports.DeadZone = DeadZone;
-},{}],"src/Game.ts":[function(require,module,exports) {
+},{}],"src/Player.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Player = exports.PlayerType = void 0;
+
+var Piece_1 = require("./Piece");
+
+var PlayerType;
+
+(function (PlayerType) {
+  PlayerType["UPPER"] = "UPPER";
+  PlayerType["LOWER"] = "LOWER";
+})(PlayerType = exports.PlayerType || (exports.PlayerType = {}));
+
+var Player =
+/** @class */
+function () {
+  function Player(type) {
+    this.type = type;
+
+    if (type === PlayerType.UPPER) {
+      this.pieces = [new Piece_1.Griff(PlayerType.UPPER, {
+        row: 0,
+        col: 0
+      }), new Piece_1.Lion(PlayerType.UPPER, {
+        row: 0,
+        col: 1
+      }), new Piece_1.Elephant(PlayerType.UPPER, {
+        row: 0,
+        col: 2
+      }), new Piece_1.Chick(PlayerType.UPPER, {
+        row: 1,
+        col: 1
+      })];
+    } else {
+      this.pieces = [new Piece_1.Griff(PlayerType.LOWER, {
+        row: 3,
+        col: 0
+      }), new Piece_1.Lion(PlayerType.LOWER, {
+        row: 3,
+        col: 1
+      }), new Piece_1.Elephant(PlayerType.LOWER, {
+        row: 3,
+        col: 2
+      }), new Piece_1.Chick(PlayerType.LOWER, {
+        row: 2,
+        col: 1
+      })];
+    }
+  }
+
+  Player.prototype.getPieces = function () {
+    return this.pieces;
+  };
+
+  return Player;
+}();
+
+exports.Player = Player;
+},{"./Piece":"src/Piece.ts"}],"images/lion.png":[function(require,module,exports) {
+module.exports = "/lion.67c23d38.png";
+},{}],"images/chicken.png":[function(require,module,exports) {
+module.exports = "/chicken.c6087a6d.png";
+},{}],"images/griff.png":[function(require,module,exports) {
+module.exports = "/griff.d0d656b4.png";
+},{}],"images/elephant.png":[function(require,module,exports) {
+module.exports = "/elephant.e05ea529.png";
+},{}],"src/Piece.ts":[function(require,module,exports) {
+"use strict";
+
+var __extends = this && this.__extends || function () {
+  var _extendStatics = function extendStatics(d, b) {
+    _extendStatics = Object.setPrototypeOf || {
+      __proto__: []
+    } instanceof Array && function (d, b) {
+      d.__proto__ = b;
+    } || function (d, b) {
+      for (var p in b) {
+        if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p];
+      }
+    };
+
+    return _extendStatics(d, b);
+  };
+
+  return function (d, b) {
+    if (typeof b !== "function" && b !== null) throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+
+    _extendStatics(d, b);
+
+    function __() {
+      this.constructor = d;
+    }
+
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+  };
+}();
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Chick = exports.Griff = exports.Elephant = exports.Lion = exports.MoveResult = void 0;
+
+var Player_1 = require("./Player");
+
+var lion_png_1 = __importDefault(require("../images/lion.png"));
+
+var chicken_png_1 = __importDefault(require("../images/chicken.png"));
+
+var griff_png_1 = __importDefault(require("../images/griff.png"));
+
+var elephant_png_1 = __importDefault(require("../images/elephant.png")); // 말이 움직인 결과를 처리하는 클래스
+
+
+var MoveResult =
+/** @class */
+function () {
+  function MoveResult(killedPiece) {
+    this.killedPiece = killedPiece;
+  }
+
+  MoveResult.prototype.getKilled = function () {
+    return this.killedPiece;
+  };
+
+  return MoveResult;
+}();
+
+exports.MoveResult = MoveResult;
+
+var DefaultPiece =
+/** @class */
+function () {
+  function DefaultPiece(ownerType, currentPosition) {
+    this.ownerType = ownerType;
+    this.currentPosition = currentPosition;
+  }
+
+  DefaultPiece.prototype.move = function (from, to) {
+    if (!this.canMove(to.position)) {
+      throw new Error("can no move");
+    }
+
+    var moveResult = new MoveResult(to.getPiece() !== null ? to.getPiece() : null);
+    to.putPiece(this);
+    from.putPiece(null);
+    this.currentPosition = to.position;
+    return moveResult;
+  };
+
+  return DefaultPiece;
+}();
+
+var Lion =
+/** @class */
+function (_super) {
+  __extends(Lion, _super);
+
+  function Lion() {
+    return _super !== null && _super.apply(this, arguments) || this;
+  }
+
+  Lion.prototype.canMove = function (pos) {
+    var canMove = pos.row === this.currentPosition.row + 1 && pos.col === this.currentPosition.col || pos.row === this.currentPosition.row - 1 && pos.col === this.currentPosition.col || pos.col === this.currentPosition.col + 1 && pos.row === this.currentPosition.row || pos.col === this.currentPosition.col - 1 && pos.row === this.currentPosition.row || pos.row === this.currentPosition.row + 1 && pos.col === this.currentPosition.col + 1 || pos.row === this.currentPosition.row + 1 && pos.col === this.currentPosition.col - 1 || pos.row === this.currentPosition.row - 1 && pos.col === this.currentPosition.col + 1 || pos.row === this.currentPosition.row - 1 && pos.col === this.currentPosition.col - 1;
+    return canMove;
+  };
+
+  Lion.prototype.render = function () {
+    return "<img class=\"piece ".concat(this.ownerType, "\" src=\"").concat(lion_png_1.default, "\" width=\"90%\" height=\"90%\"/>");
+  };
+
+  return Lion;
+}(DefaultPiece);
+
+exports.Lion = Lion;
+
+var Elephant =
+/** @class */
+function (_super) {
+  __extends(Elephant, _super);
+
+  function Elephant() {
+    return _super !== null && _super.apply(this, arguments) || this;
+  }
+
+  Elephant.prototype.canMove = function (pos) {
+    return pos.row === this.currentPosition.row + 1 && pos.col === this.currentPosition.col + 1 || pos.row === this.currentPosition.row + 1 && pos.col === this.currentPosition.col - 1 || pos.row === this.currentPosition.row - 1 && pos.col === this.currentPosition.col + 1 || pos.row === this.currentPosition.row - 1 && pos.col === this.currentPosition.col - 1;
+  };
+
+  Elephant.prototype.render = function () {
+    return "<img class=\"piece ".concat(this.ownerType, "\" src=\"").concat(elephant_png_1.default, "\" width=\"90%\" height=\"90%\"/>");
+  };
+
+  return Elephant;
+}(DefaultPiece);
+
+exports.Elephant = Elephant;
+
+var Griff =
+/** @class */
+function (_super) {
+  __extends(Griff, _super);
+
+  function Griff() {
+    return _super !== null && _super.apply(this, arguments) || this;
+  }
+
+  Griff.prototype.canMove = function (pos) {
+    return pos.row === this.currentPosition.row + 1 && pos.col === this.currentPosition.col || pos.row === this.currentPosition.row - 1 && pos.col === this.currentPosition.col || pos.col === this.currentPosition.col + 1 && pos.row === this.currentPosition.row || pos.col === this.currentPosition.col - 1 && pos.row === this.currentPosition.row;
+  };
+
+  Griff.prototype.render = function () {
+    return "<img class=\"piece ".concat(this.ownerType, "\" src=\"").concat(griff_png_1.default, "\" width=\"90%\" height=\"90%\"/>");
+  };
+
+  return Griff;
+}(DefaultPiece);
+
+exports.Griff = Griff;
+
+var Chick =
+/** @class */
+function (_super) {
+  __extends(Chick, _super);
+
+  function Chick() {
+    return _super !== null && _super.apply(this, arguments) || this;
+  }
+
+  Chick.prototype.canMove = function (pos) {
+    return this.currentPosition.row + (this.ownerType == Player_1.PlayerType.UPPER ? +1 : -1) === pos.row;
+  };
+
+  Chick.prototype.render = function () {
+    return "<img class=\"piece ".concat(this.ownerType, "\" src=\"").concat(chicken_png_1.default, "\" width=\"90%\" height=\"90%\"/>");
+  };
+
+  return Chick;
+}(DefaultPiece);
+
+exports.Chick = Chick;
+},{"./Player":"src/Player.ts","../images/lion.png":"images/lion.png","../images/chicken.png":"images/chicken.png","../images/griff.png":"images/griff.png","../images/elephant.png":"images/elephant.png"}],"src/Game.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -253,22 +522,128 @@ exports.Game = void 0;
 
 var Board_1 = require("./Board");
 
+var Piece_1 = require("./Piece");
+
+var Player_1 = require("./Player");
+
 var Game =
 /** @class */
 function () {
   function Game() {
-    this.board = new Board_1.Board();
+    var _this = this;
+
+    this.turn = 0;
+    this.gameInfoEl = document.querySelector(".alert");
+    this.state = "STARTED";
+    this.upperPlayer = new Player_1.Player(Player_1.PlayerType.UPPER);
+    this.lowerPlayer = new Player_1.Player(Player_1.PlayerType.LOWER);
+    this.board = new Board_1.Board(this.upperPlayer, this.lowerPlayer);
     this.upperDeadZone = new Board_1.DeadZone("upper");
-    this.innerDeadZone = new Board_1.DeadZone("lower");
+    this.lowerDeadZone = new Board_1.DeadZone("lower");
     var boardContainer = document.querySelector(".board-container");
     boardContainer.appendChild(this.board._el);
+    this.currentPlayer = this.upperPlayer;
+    this.board.render();
+    this.renderInfo();
+
+    this.board._el.addEventListener("click", function (event) {
+      if (_this.state === "ENDED") {
+        return false;
+      }
+
+      if (event.target instanceof HTMLElement) {
+        var cellEl = void 0;
+
+        if (event.target.classList.contains("cell")) {
+          cellEl = event.target;
+        } else if (event.target.classList.contains("piece")) {
+          cellEl = event.target.parentElement;
+        } else {
+          return false;
+        }
+
+        var cell = _this.board.map.get(cellEl);
+
+        if (_this.isCurrenUserPiece(cell)) {
+          _this.select(cell);
+
+          return false;
+        }
+
+        if (_this.selectedCell) {
+          _this.move(cell);
+
+          _this.changeTurn();
+        }
+      }
+    });
   }
+
+  Game.prototype.isCurrenUserPiece = function (cell) {
+    return cell !== null && cell.getPiece() != null && cell.getPiece().ownerType === this.currentPlayer.type;
+  };
+
+  Game.prototype.select = function (cell) {
+    if (cell.getPiece() === null) {
+      return;
+    }
+
+    if (cell.getPiece().ownerType !== this.currentPlayer.type) {
+      return;
+    }
+
+    if (this.selectedCell) {
+      this.selectedCell.deactive();
+      this.selectedCell.render();
+    }
+
+    this.selectedCell = cell;
+    cell.active();
+    cell.render();
+  };
+
+  Game.prototype.move = function (cell) {
+    this.selectedCell.deactive();
+    var killed = this.selectedCell.getPiece().move(this.selectedCell, cell).getKilled();
+    this.selectedCell = cell;
+
+    if (killed) {
+      if (killed.ownerType === Player_1.PlayerType.UPPER) {
+        this.lowerDeadZone.put(killed);
+      } else {
+        this.upperDeadZone.put(killed);
+      }
+
+      if (killed instanceof Piece_1.Lion) {
+        this.state = "ENDED";
+      }
+    }
+  };
+
+  Game.prototype.renderInfo = function (extraMessage) {
+    this.gameInfoEl.innerHTML = "".concat(this.turn, "\uD134 ").concat(this.currentPlayer.type, " \uCC28\uB840 ").concat(extraMessage ? "|" + extraMessage : "");
+  };
+
+  Game.prototype.changeTurn = function () {
+    this.selectedCell.deactive();
+    this.selectedCell = null;
+
+    if (this.state === "ENDED") {
+      this.renderInfo("END");
+    } else {
+      this.turn += 1;
+      this.currentPlayer = this.currentPlayer === this.lowerPlayer ? this.upperPlayer : this.lowerPlayer;
+      this.renderInfo();
+    }
+
+    this.board.render();
+  };
 
   return Game;
 }();
 
 exports.Game = Game;
-},{"./Board":"src/Board.ts"}],"node_modules/parcel-bundler/src/builtins/bundle-url.js":[function(require,module,exports) {
+},{"./Board":"src/Board.ts","./Piece":"src/Piece.ts","./Player":"src/Player.ts"}],"node_modules/parcel-bundler/src/builtins/bundle-url.js":[function(require,module,exports) {
 var bundleURL = null;
 
 function getBundleURLCached() {
@@ -388,7 +763,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65105" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59757" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

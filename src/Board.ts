@@ -1,4 +1,5 @@
 import { Piece } from "./Piece";
+import { Player } from "./Player";
 
 // 이미지들의 x, y 위치를 잡아주는 인터페이스 생성
 export interface Position {
@@ -48,8 +49,9 @@ export class Board {
   // cells는 클래스 Cell 배열타입이므로 빈 배열을 가지게 선언한다.
   cells: Cell[] = [];
   _el: HTMLElement = document.createElement("div");
+  map: WeakMap<HTMLElement, Cell> = new WeakMap();
 
-  constructor() {
+  constructor(upperPlayer: Player, lowerPlayer: Player) {
     this._el.className = "board";
 
     for (let row = 0; row < 4; row++) {
@@ -58,7 +60,15 @@ export class Board {
       this._el.appendChild(rowEl);
 
       for (let col = 0; col < 3; col++) {
-        const cell = new Cell({ row, col }, null);
+        const piece =
+          upperPlayer.getPieces().find(({ currentPosition }) => {
+            return currentPosition.col === col && currentPosition.row === row;
+          }) ||
+          lowerPlayer.getPieces().find(({ currentPosition }) => {
+            return currentPosition.col === col && currentPosition.row === row;
+          });
+        const cell = new Cell({ row, col }, piece);
+        this.map.set(cell._el, cell);
         this.cells.push(cell);
         rowEl.appendChild(cell._el);
       }
